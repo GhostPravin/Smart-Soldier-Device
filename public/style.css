@@ -1,0 +1,553 @@
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;500;700;900&display=swap');
+
+:root {
+  /* Strictly Monochromatic HUD Palette */
+  --hud-black: #050505;
+  --hud-dark: #0a110a;
+  --hud-green-dim: #003311;
+  --hud-green-mid: #005511;
+  --hud-green-bright: #00ff33;
+  --hud-text: #ccffcc;
+
+  /* Alerts - Keeping them distinct but stylized */
+  --alert-red: #ff3333;
+  --alert-yellow: #ffcc00;
+
+  /* Grid & Lines */
+  --grid-line: rgba(0, 255, 51, 0.15);
+  --border-width: 1px;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  scrollbar-width: thin;
+  scrollbar-color: var(--hud-green-mid) var(--hud-dark);
+}
+
+body {
+  background-color: #000;
+  background-image:
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size: 40px 40px;
+  color: var(--hud-text);
+  font-family: 'Share Tech Mono', monospace;
+  overflow-x: hidden;
+  min-height: 100vh;
+  font-size: 16px;
+}
+
+/* CRT Scanline Effect Overlay */
+body::after {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: repeating-linear-gradient(0deg,
+      rgba(0, 0, 0, 0.15),
+      rgba(0, 0, 0, 0.15) 1px,
+      transparent 1px,
+      transparent 2px);
+  pointer-events: none;
+  z-index: 999;
+}
+
+/* Vignette */
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: radial-gradient(circle, transparent 60%, black 100%);
+  pointer-events: none;
+  z-index: 998;
+}
+
+.container {
+  padding: 20px;
+  max-width: 1800px;
+  margin: 0 auto;
+}
+
+/* === HEADER === */
+.header {
+  border-bottom: 2px solid var(--hud-green-bright);
+  padding-bottom: 10px;
+  margin-bottom: 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  position: relative;
+}
+
+.header::before {
+  content: "SYS.V.1.0 // SECURE LINK";
+  position: absolute;
+  top: -15px;
+  left: 0;
+  font-size: 0.7rem;
+  color: var(--hud-green-mid);
+  letter-spacing: 2px;
+}
+
+.header-title {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.live-clock {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 1.2rem;
+  color: var(--hud-green-bright);
+  text-shadow: 0 0 5px var(--hud-green-mid);
+  letter-spacing: 2px;
+  border: 1px solid var(--hud-green-dim);
+  padding: 5px 10px;
+  background: rgba(0, 20, 0, 0.4);
+}
+
+.header-icon {
+  font-size: 2rem;
+  filter: drop-shadow(0 0 5px var(--hud-green-bright));
+}
+
+h1 {
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 700;
+  color: var(--hud-green-bright);
+  text-transform: uppercase;
+  letter-spacing: 4px;
+  font-size: 2rem;
+  text-shadow: 0 0 10px var(--hud-green-mid);
+}
+
+.status-badge {
+  border: 1px solid var(--hud-green-bright);
+  padding: 5px 15px;
+  background: rgba(0, 255, 51, 0.1);
+  font-weight: bold;
+  letter-spacing: 2px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  position: relative;
+}
+
+/* Corner markers for Status Badge */
+.status-badge::after {
+  content: "";
+  position: absolute;
+  bottom: -4px;
+  right: -4px;
+  width: 10px;
+  height: 10px;
+  border-bottom: 2px solid var(--hud-green-bright);
+  border-right: 2px solid var(--hud-green-bright);
+}
+
+.status-badge::before {
+  content: "";
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  width: 10px;
+  height: 10px;
+  border-top: 2px solid var(--hud-green-bright);
+  border-left: 2px solid var(--hud-green-bright);
+}
+
+.status-indicator {
+  width: 8px;
+  height: 8px;
+  background-color: var(--hud-green-bright);
+  box-shadow: 0 0 10px var(--hud-green-bright);
+  animation: blink 1s steps(2, start) infinite;
+}
+
+@keyframes blink {
+  to {
+    visibility: hidden;
+  }
+}
+
+/* === GRID LAYOUT === */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: auto auto auto;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+/* Large items span multiple cols */
+.map-container {
+  grid-column: span 2;
+  grid-row: span 2;
+}
+
+.chart-container {
+  grid-column: span 2;
+}
+
+.alert-container {
+  grid-column: span 2;
+  border-color: var(--alert-yellow);
+  /* Default Warning Color Border */
+}
+
+/* === ALERT BOX === */
+.alert-box {
+  height: 250px;
+  overflow-y: auto;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px inset var(--hud-green-dim);
+  padding: 10px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.85rem;
+  scrollbar-width: thin;
+  scrollbar-color: var(--hud-green-bright) var(--hud-dark);
+}
+
+.alert-line {
+  margin-bottom: 5px;
+  border-bottom: 1px dotted var(--hud-green-dim);
+  padding-bottom: 2px;
+  display: flex;
+  gap: 10px;
+}
+
+.alert-line .time {
+  color: var(--hud-green-mid);
+}
+
+.alert-line.emergency {
+  color: var(--alert-red);
+  text-shadow: 0 0 5px var(--alert-red);
+  animation: flashAlert 1s infinite alternate;
+}
+
+.alert-line.warning {
+  color: var(--alert-yellow);
+}
+
+.alert-line.safe {
+  color: var(--hud-green-bright);
+}
+
+@keyframes flashAlert {
+  0% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0.5;
+  }
+}
+
+/* === CARDS (HUD MODULES) === */
+.card {
+  background: rgba(0, 20, 0, 0.6);
+  border: 1px solid var(--hud-green-mid);
+  padding: 15px;
+  position: relative;
+  /* Cut corner effect using clip-path */
+  clip-path: polygon(0 0,
+      100% 0,
+      100% calc(100% - 15px),
+      calc(100% - 15px) 100%,
+      0 100%);
+  backdrop-filter: blur(2px);
+}
+
+/* Decorative borders for cards */
+.card::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 20px;
+  height: 2px;
+  background: var(--hud-green-bright);
+  transform: rotate(-45deg) translate(-5px, -8px);
+}
+
+.card:hover {
+  border-color: var(--hud-green-bright);
+  box-shadow: inset 0 0 20px rgba(0, 255, 51, 0.1);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px dashed var(--hud-green-mid);
+  padding-bottom: 5px;
+  margin-bottom: 10px;
+}
+
+.card-title {
+  font-family: 'Checkbook', monospace;
+  font-size: 0.9rem;
+  color: var(--hud-green-bright);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.card-icon {
+  font-size: 1rem;
+  opacity: 0.8;
+}
+
+.card-value {
+  font-size: 2.5rem;
+  font-weight: 400;
+  font-family: 'Share Tech Mono', monospace;
+  color: #fff;
+  text-shadow: 0 0 5px var(--hud-green-bright);
+  margin: 10px 0;
+}
+
+.card-unit {
+  font-size: 1rem;
+  color: var(--hud-green-mid);
+  margin-left: 5px;
+}
+
+.card-label {
+  font-size: 0.7rem;
+  color: var(--hud-green-mid);
+  text-transform: uppercase;
+  margin-bottom: 5px;
+}
+
+/* === TOGGLE SWITCH === */
+.view-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.toggle-label {
+  font-size: 0.7rem;
+  color: var(--hud-green-bright);
+  font-weight: bold;
+}
+
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 40px;
+  height: 20px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--hud-dark);
+  border: 1px solid var(--hud-green-mid);
+  transition: .4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 14px;
+  width: 14px;
+  left: 2px;
+  bottom: 2px;
+  background-color: var(--hud-green-dim);
+  transition: .4s;
+}
+
+input:checked+.slider {
+  background-color: var(--hud-green-dim);
+  border-color: var(--hud-green-bright);
+}
+
+input:checked+.slider:before {
+  transform: translateX(20px);
+  background-color: var(--hud-green-bright);
+  box-shadow: 0 0 5px var(--hud-green-bright);
+}
+
+.slider.round {
+  border-radius: 2px;
+  /* Square HUD look */
+}
+
+.slider.round:before {
+  border-radius: 1px;
+}
+
+/* === PROGRESS BARS === */
+.progress-container {
+  background: var(--hud-dark);
+  height: 6px;
+  width: 100%;
+  margin-top: 10px;
+  border: 1px solid var(--hud-green-dim);
+}
+
+.progress-bar {
+  width: 100%;
+  height: 100%;
+}
+
+.progress-fill {
+  background: var(--hud-green-bright);
+  height: 100%;
+  box-shadow: 0 0 10px var(--hud-green-bright);
+  position: relative;
+}
+
+/* Striped pattern on progress bars */
+.progress-fill::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  background: repeating-linear-gradient(90deg,
+      transparent,
+      transparent 2px,
+      #000 2px,
+      #000 4px);
+}
+
+/* === MAP === */
+.map-view {
+  width: 100%;
+  height: 100%;
+  min-height: 400px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  border-radius: 4px;
+}
+
+#map2d {
+  z-index: 10;
+  border: 1px solid var(--hud-green-mid);
+  /* Satellite "Night Vision" Look */
+  filter: sepia(10%) contrast(1.2) brightness(0.8) hue-rotate(80deg) saturate(0.5);
+}
+
+#map3d {
+  z-index: 11;
+  background: #000;
+  border: 1px solid var(--hud-green-mid);
+  overflow: hidden;
+}
+
+/* Ensure map container has relative position for absolute children */
+.map-container .card {
+  /* This selector targets the card itself if needed, but the container logic is handled below */
+}
+
+.map-container {
+  position: relative;
+  min-height: 400px;
+  /* Ensure height */
+  padding-top: 50px;
+  /* Space for header */
+}
+
+/* Fix header positioning over map */
+.map-container .card-header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 20;
+  background: rgba(0, 20, 0, 0.8);
+  padding: 10px;
+}
+
+/* === CHARTS === */
+.chart-wrapper {
+  position: relative;
+  height: 250px;
+  border: 1px solid var(--hud-green-dim);
+  background: rgba(0, 0, 0, 0.3);
+  padding: 10px;
+}
+
+canvas {
+  /* Give lines a glow */
+  filter: drop-shadow(0 0 4px var(--hud-green-bright));
+}
+
+/* === INFO GRID FOR GPS === */
+.info-grid {
+  display: grid;
+  gap: 10px;
+}
+
+.info-item {
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--hud-green-dim);
+  padding: 5px 0;
+}
+
+.info-label {
+  color: var(--hud-green-mid);
+  font-size: 0.8rem;
+}
+
+.info-value {
+  color: var(--hud-green-bright);
+  font-family: 'Orbitron', monospace;
+}
+
+/* === FOOTER/TIMESTAMP === */
+.timestamp {
+  text-align: right;
+  border-top: 1px solid var(--hud-green-bright);
+  padding-top: 10px;
+  color: var(--hud-green-mid);
+  font-size: 0.8rem;
+  margin-top: 20px;
+}
+
+/* === RESPONSIVE === */
+@media (max-width: 1200px) {
+  .dashboard-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .map-container,
+  .chart-container {
+    grid-column: span 1;
+  }
+}

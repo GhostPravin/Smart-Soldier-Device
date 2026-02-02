@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TACTICAL MONITORING SYSTEM</title>
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="style.css">
+
+  <!-- Leaflet for Maps -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- Three.js for 3D Globe -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+
+<body>
+  <div class="container">
+    <!-- Header -->
+    <header class="header">
+      <div class="header-title">
+        <div class="header-icon">❖</div>
+        <h1>SMART SOLDIER // TACTICAL DASHBOARD</h1>
+      </div>
+      <div class="header-right">
+        <div id="liveClock" class="live-clock">--:--:--</div>
+        <div class="status-badge" id="statusBadge">
+          <span class="status-indicator"></span>
+          <span id="statusText">SYS.NORMAL</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Grid -->
+    <div class="dashboard-grid">
+
+      <!-- GPS Map (Large) -->
+      <div class="card map-container">
+        <div class="card-header">
+          <span class="card-title">LIVE_TRACKING_FEED</span>
+          <span class="card-icon">⌖</span>
+        </div>
+        <!-- 2D Map Container -->
+        <div id="map2d" class="map-view" style="display: none;"></div>
+        <!-- 3D Globe Container -->
+        <div id="map3d" class="map-view"></div>
+      </div>
+
+      <!-- Temperature -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">ENV.TEMP</span>
+          <span class="card-icon">TMP</span>
+        </div>
+        <div class="card-value" id="temperature">--</div>
+        <div class="card-label">CELSIUS [°C]</div>
+        <div class="progress-container">
+          <div class="progress-bar">
+            <div class="progress-fill" id="tempProgress" style="width: 0%"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Humidity -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">ENV.HUMIDITY</span>
+          <span class="card-icon">HUM</span>
+        </div>
+        <div class="card-value" id="humidity">--</div>
+        <div class="card-label">RELATIVE [%]</div>
+        <div class="progress-container">
+          <div class="progress-bar">
+            <div class="progress-fill" id="humidityProgress" style="width: 0%"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Heart Rate -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">BIO.HEART_RATE</span>
+          <span class="card-icon">BPM</span>
+        </div>
+        <div class="card-value" id="heartRate">--</div>
+        <div class="card-label">BEATS_PER_MIN</div>
+        <!-- ECG Animation Canvas -->
+        <canvas id="ecgCanvas"
+          style="width: 100%; height: 60px; border-top: 1px solid #004400; margin-top: 10px;"></canvas>
+      </div>
+
+      <!-- SpO2 -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">BIO.OXYGEN</span>
+          <span class="card-icon">O2</span>
+        </div>
+        <div class="card-value" id="spo2">--</div>
+        <div class="card-label">SATURATION [%]</div>
+        <div class="progress-container">
+          <div class="progress-bar">
+            <div class="progress-fill" id="spo2Progress" style="width: 0%"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Gas / Air Quality -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">HAZARD.GAS</span>
+          <span class="card-icon">AIR</span>
+        </div>
+        <div class="card-value" id="gas">--</div>
+        <div class="card-label">PPM LEVEL</div>
+        <div class="progress-container">
+          <div class="progress-bar">
+            <div class="progress-fill" id="gasProgress" style="width: 0%"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">NAV.COORDS</span>
+          <!-- View Toggle Switch -->
+          <div class="view-toggle">
+            <span class="toggle-label">2D</span>
+            <label class="switch">
+              <input type="checkbox" id="mapToggle" checked>
+              <span class="slider round"></span>
+            </label>
+            <span class="toggle-label">3D</span>
+          </div>
+        </div>
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="info-label">LATITUDE</span>
+            <span class="info-value" id="latitude">00.0000 N</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">LONGITUDE</span>
+            <span class="info-value" id="longitude">00.0000 E</span>
+          </div>
+          <div class="info-item" style="border-bottom: none;">
+            <span class="info-label">SECTOR</span>
+            <span class="info-value" id="locationName" style="font-size: 0.8rem;">ACQUIRING...</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Vitals Chart -->
+      <div class="card chart-container">
+        <div class="card-header">
+          <span class="card-title">BIO.METRICS_HISTORY</span>
+          <span class="card-icon">📈</span>
+        </div>
+        <div class="chart-wrapper">
+          <canvas id="vitalsChart"></canvas>
+        </div>
+      </div>
+
+      <!-- ALERT CONSOLE (New) -->
+      <div class="card alert-container">
+        <div class="card-header">
+          <span class="card-title">SYS.ALERT_LOG</span>
+          <span class="card-icon">⚠️</span>
+        </div>
+        <div class="alert-box" id="alertBox">
+          <div class="alert-line"><span class="time">--:--:--</span> <span class="msg">SYSTEM INITIALIZED...</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Environment Chart -->
+      <div class="card chart-container">
+        <div class="card-header">
+          <span class="card-title">ENV.METRICS_HISTORY</span>
+          <span class="card-icon">📊</span>
+        </div>
+        <div class="chart-wrapper">
+          <canvas id="environmentChart"></canvas>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="timestamp">
+      DATA.SYNC_TIME: <span id="lastUpdate">INITIALIZING...</span>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+
+</html>
