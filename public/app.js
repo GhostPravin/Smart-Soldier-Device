@@ -33,6 +33,56 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!is3DMode) map2d.invalidateSize(); // Fix Leaflet rendering hidden
     });
 
+    // Track Button Logic
+    document.getElementById('trackBtn').addEventListener('click', () => {
+        // 1. Ensure we are in 3D mode first to show the animation
+        if (!is3DMode) {
+            toggle.checked = true;
+            toggle.dispatchEvent(new Event('change'));
+        }
+
+        // 2. Disable controls to prevent user interference
+        if (globe.controls) globe.controls.enabled = false;
+
+        // 3. Animate Zoom
+        const duration = 1500; // ms
+        const startZ = globe.camera.position.z;
+        const targetZ = 1.2; // Close zoom
+        const startTime = performance.now();
+
+        function animateZoom(time) {
+            const elapsed = time - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+
+            // Ease In-Out Cubic
+            const ease = progress < 0.5 ? 4 * progress * progress * progress : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+
+            globe.camera.position.z = startZ + (targetZ - startZ) * ease;
+
+            // Keep looking at earth (or specifically the marker if we wanted to be fancy, but center is safer)
+            globe.camera.lookAt(0, 0, 0);
+
+            if (progress < 1) {
+                requestAnimationFrame(animateZoom);
+            } else {
+                // 4. Animation Complete -> Switch to 2D
+                setTimeout(() => {
+                    toggle.checked = false;
+                    toggle.dispatchEvent(new Event('change'));
+
+                    // Re-enable controls if they go back
+                    if (globe.controls) {
+                        globe.controls.enabled = true;
+                        // Reset camera for next time? Maybe not immediately.
+                        // globe.camera.position.z = 2.5; 
+                    }
+                }, 300); // Brief pause at max zoom
+            }
+        }
+
+        requestAnimationFrame(animateZoom);
+    });
+
     // Live Clock
     function updateClock() {
         const now = new Date();
@@ -452,6 +502,9 @@ function updateDashboard(data) {
     setBar('spo2Progress', data.spo2, 70, 100);
     setBar('gasProgress', data.gas, 0, 4000);
 
+    // Check Thresholds & Apply Danger Styles
+    updateDangerVisuals(data);
+
     if (data.lat && data.lng) {
         document.getElementById('latitude').innerText = data.lat.toFixed(4) + ' N';
         document.getElementById('longitude').innerText = data.lng.toFixed(4) + ' E';
@@ -479,6 +532,25 @@ function setBar(id, val, min, max) {
     if (val === undefined || val === null) return;
     const pct = Math.min(Math.max((val - min) / (max - min) * 100, 0), 100);
     document.getElementById(id).style.width = pct + '%';
+}
+
+// ==================== THRESHOLD HELPER ====================
+function updateDangerVisuals(data) {
+    toggleDanger('temperature', data.temperature > 50); // High Temp
+    toggleDanger('heartRate', data.heartRate > 150 || data.heartRate < 40); // Arrhythmia
+    toggleDanger('spo2', data.spo2 < 90); // Hypoxia
+    toggleDanger('gas', data.gas > 1500); // Toxic Gas
+}
+
+function toggleDanger(elementId, isDangerous) {
+    const el = document.getElementById(elementId);
+    if (el) {
+        const card = el.closest('.card');
+        if (card) {
+            if (isDangerous) card.classList.add('danger-alert');
+            else card.classList.remove('danger-alert');
+        }
+    }
 }
 
 // ==================== CHART UPDATE ====================

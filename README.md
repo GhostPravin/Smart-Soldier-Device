@@ -1,207 +1,158 @@
-# 🎖️ SMART SOLDIER - IoT Dashboard
+# 🎖️ SMART SOLDIER – IoT Dashboard
 
-A real-time IoT monitoring dashboard for Smart Soldier health and environmental tracking system built with ESP32/Arduino.
+A real-time IoT monitoring dashboard for Smart Soldier health and environmental tracking, using **LoRa wireless communication** between the soldier unit and base station.
 
-![Dashboard Preview](https://img.shields.io/badge/Status-Active-00ff41?style=for-the-badge)
-![Version](https://img.shields.io/badge/Version-1.0.0-00ff41?style=for-the-badge)
+![Status](https://img.shields.io/badge/Status-Active-00ff41?style=for-the-badge)
+![Version](https://img.shields.io/badge/Version-2.0.0-00ff41?style=for-the-badge)
 
-## 📊 Features
+---
 
-### Real-time Monitoring
-- **Health Vitals**: Heart Rate & SpO2 (Blood Oxygen) monitoring via MAX30102 sensor
-- **Environmental Data**: Temperature & Humidity tracking via DHT11 sensor
-- **Air Quality**: Gas level detection using MQ-135 sensor
-- **GPS Tracking**: Live location monitoring with interactive map
-- **Alert System**: Automatic status detection (SAFE/WARNING/EMERGENCY)
+## 📡 System Architecture
 
-### Dashboard Features
-- 🎨 Military-grade dark theme with neon green accents
-- 📈 Real-time charts for trend analysis
-- 🗺️ Interactive GPS map with live marker
-- 🔔 Visual status indicators with color-coded alerts
-- 📱 Fully responsive design
-- ⚡ Smooth animations and glassmorphism effects
-
-## 🛠️ Technology Stack
-
-### Hardware
-- **ESP32** microcontroller
-- **DHT11** - Temperature & Humidity sensor
-- **MAX30102** - Heart Rate & SpO2 sensor
-- **MQ-135** - Air Quality/Gas sensor
-- **GPS Module** - Location tracking
-- **Buzzer** - Alert system
-
-### Software
-- **Backend**: Node.js + Express
-- **Frontend**: HTML5, CSS3, Vanilla JavaScript
-- **Maps**: Leaflet.js
-- **Charts**: Chart.js
-- **Data Format**: JSON
-
-## 🚀 Installation
-
-### Prerequisites
-- Node.js (v14 or higher)
-- Arduino IDE (for ESP32 programming)
-- ESP32 board with sensors connected
-
-### Setup Instructions
-
-1. **Clone or navigate to the project directory**
-   ```bash
-   cd "c:/Users/ASUS/Desktop/EngiiGenious/IoT Dashboards/Smart Soldier Device"
-   ```
-
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
-
-3. **Configure Arduino**
-   - Update WiFi credentials in Arduino code:
-     ```cpp
-     const char* ssid = "YourWiFiName";
-     const char* password = "YourPassword";
-     ```
-   - Update server URL with your computer's IP:
-     ```cpp
-     const char* serverURL = "http://YOUR_IP:3000/api/data";
-     ```
-
-4. **Upload Arduino code to ESP32**
-   - Open the `.ino` file in Arduino IDE
-   - Select ESP32 board
-   - Upload the code
-
-5. **Start the server**
-   ```bash
-   npm start
-   ```
-
-6. **Access the dashboard**
-   - Open browser: `http://localhost:3000`
-   - Or from network: `http://YOUR_IP:3000`
-
-## 📡 API Endpoints
-
-### POST `/api/data`
-Receive sensor data from Arduino
-```json
-{
-  "temperature": 28.5,
-  "humidity": 65.2,
-  "gas": 1850,
-  "heartRate": 75,
-  "spo2": 98,
-  "lat": 28.6139,
-  "lng": 77.2090
-}
+```
+[SOLDIER UNIT]                      [BASE STATION]
+ESP32 + Sensors                     ESP32 + WiFi
+  + Ra-02 LoRa  ──── 433 MHz ────→   + Ra-02 LoRa  ──→  Node.js Server  ──→  Dashboard
+(No WiFi needed)                    (Connected to PC)
 ```
 
-### GET `/api/data/latest`
-Get the most recent sensor reading
+**Why LoRa?**
+- Range up to **5 km** in open field (no WiFi needed on soldier)
+- Very low power consumption
+- Ideal for military/field deployments
 
-### GET `/api/data/history`
-Get historical data (last 50 readings)
+---
 
-### GET `/api/status`
-Get current system status (SAFE/WARNING/EMERGENCY)
+## 🔧 Hardware
 
-## 🎯 Alert Thresholds
+### Soldier Unit (Transmitter)
+| Component | Purpose |
+|---|---|
+| ESP32 | Microcontroller |
+| DHT11 | Temperature & Humidity |
+| MAX30102 | Heart Rate & SpO2 |
+| MQ-135 | Air Quality / Gas (PPM) |
+| GPS NEO-6M | Live location |
+| Ra-02 SX1278 | LoRa 433 MHz transmitter |
+| Buzzer | Local alert |
 
-| Parameter | Warning | Emergency |
-|-----------|---------|-----------|
-| Gas Level | > 2500 | > 2500 + Low SpO2 |
-| SpO2 | < 93% | < 90% |
-| Temperature | > 35°C | - |
+### Base Station (Receiver)
+| Component | Purpose |
+|---|---|
+| ESP32 | Microcontroller |
+| Ra-02 SX1278 | LoRa 433 MHz receiver |
+| WiFi | Forward data to server |
+
+---
+
+## 📌 Ra-02 SX1278 Wiring (Both ESP32s)
+
+| Ra-02 Pin | ESP32 Pin |
+|---|---|
+| VCC | 3.3V ⚠️ (never 5V!) |
+| GND | GND |
+| NSS (CS) | GPIO 5 |
+| RESET | GPIO 14 |
+| DIO0 | GPIO 26 |
+| MOSI | GPIO 23 |
+| MISO | GPIO 19 |
+| SCK | GPIO 18 |
+
+---
+
+## 🚀 Setup Instructions
+
+### 1. Install Dependencies
+```bash
+npm install
+```
+
+### 2. Configure Receiver
+Open `arduino/lora_receiver.ino` and set:
+```cpp
+const char* WIFI_SSID     = "YourWiFiName";
+const char* WIFI_PASSWORD = "YourPassword";
+const char* SERVER_URL    = "http://YOUR_PC_IP:3000/api/data";
+```
+Find your PC IP: run `ipconfig` in PowerShell.
+
+### 3. Upload Arduino Code
+- Upload `arduino/lora_transmitter.ino` → Soldier unit ESP32
+- Upload `arduino/lora_receiver.ino` → Base station ESP32
+
+### 4. Start the Server
+```bash
+npm start
+```
+
+### 5. Open Dashboard
+```
+http://localhost:3000
+```
+
+---
 
 ## 📁 Project Structure
 
 ```
 Smart Soldier Device/
+├── arduino/
+│   ├── lora_transmitter.ino   # Soldier unit (sensors + LoRa TX)
+│   └── lora_receiver.ino      # Base station (LoRa RX + WiFi POST)
 ├── public/
-│   ├── index.html      # Dashboard UI
-│   ├── style.css       # Styling & animations
-│   └── app.js          # Frontend logic
-├── server.js           # Express backend
-├── package.json        # Dependencies
-└── README.md          # Documentation
+│   ├── index.html             # Dashboard UI
+│   ├── style.css              # Styling & animations
+│   └── app.js                 # Frontend logic
+├── server.js                  # Express backend
+├── demo.js                    # Simulate data (no hardware needed)
+└── package.json
 ```
 
-## 🎨 Design Features
+---
 
-- **Military-grade aesthetic** with dark theme
-- **Neon green accents** (#00ff41) for high visibility
-- **Glassmorphism effects** for modern UI
-- **Animated grid background** for depth
-- **Scanline effect** for authentic military display
-- **Smooth transitions** and micro-animations
-- **Responsive design** for all screen sizes
+## 📡 LoRa Packet Format
 
-## 🔧 Customization
-
-### Changing Update Interval
-Edit `public/app.js`:
-```javascript
-const UPDATE_INTERVAL = 2000; // milliseconds
+Data sent from transmitter every 3 seconds:
+```
+ID:S1,T:28.50,H:65.20,G:1450,HR:75,SPO2:98,LAT:28.613900,LON:77.209000,STAT:SAFE
 ```
 
-### Modifying Alert Thresholds
-Edit `server.js`:
-```javascript
-const GAS_DANGER = 2500;
-const SPO2_EMERGENCY = 90;
-const SPO2_WARNING = 93;
-const TEMP_WARNING = 35;
+## 📊 API Endpoints
+
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/api/data` | Receive sensor data |
+| GET | `/api/data/latest` | Latest reading |
+| GET | `/api/data/history` | Last 50 readings |
+| GET | `/api/status` | Current status |
+
+## ⚠️ Alert Thresholds
+
+| Parameter | Warning | Emergency |
+|---|---|---|
+| Gas | > 3200 PPM | > 3200 + SpO2 < 90% |
+| SpO2 | < 93% | < 90% |
+| Temperature | > 35°C | — |
+
+## 🧪 Testing Without Hardware
+
+```bash
+node demo.js
 ```
+Sends simulated sensor data to the server every 3 seconds.
 
-### Changing Color Scheme
-Edit `public/style.css` CSS variables:
-```css
-:root {
-  --primary-green: #00ff41;
-  --secondary-green: #00cc33;
-  /* ... */
-}
-```
+---
 
-## 📊 Data Flow
+## 🔧 Required Arduino Libraries
 
-```
-Arduino ESP32 → WiFi → Express Server → REST API → Dashboard
-     ↓                                                  ↓
-  Sensors                                         Real-time UI
-```
-
-## 🐛 Troubleshooting
-
-### Arduino not connecting to WiFi
-- Check WiFi credentials
-- Ensure WiFi is 2.4GHz (ESP32 doesn't support 5GHz)
-- Verify network allows device connections
-
-### Dashboard shows no data
-- Verify server is running on port 3000
-- Check Arduino serial monitor for HTTP response codes
-- Ensure firewall allows connections on port 3000
-- Verify server URL in Arduino code matches your IP
-
-### Sensors showing incorrect values
-- Check sensor connections
-- Verify I2C addresses for MAX30102
-- Ensure proper power supply to sensors
-
-## 📝 License
-
-MIT License - Feel free to use and modify
-
-## 👨‍💻 Support
-
-For issues or questions, check:
-- Serial monitor output from Arduino
-- Browser console for JavaScript errors
-- Server terminal for backend logs
+| Library | Author |
+|---|---|
+| LoRa | Sandeep Mistry |
+| DHT sensor library | Adafruit |
+| MAX30105 | SparkFun |
+| spo2_algorithm | SparkFun |
+| TinyGPS++ | Mikal Hart |
+| ArduinoJson | Benoit Blanchon |
 
 ---
 

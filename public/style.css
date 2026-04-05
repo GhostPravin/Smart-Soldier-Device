@@ -270,6 +270,35 @@ h1 {
       calc(100% - 15px) 100%,
       0 100%);
   backdrop-filter: blur(2px);
+  transition: all 0.3s ease;
+}
+
+.card.danger-alert {
+  background: rgba(50, 0, 0, 0.6);
+  border-color: var(--alert-red);
+  box-shadow: 0 0 15px rgba(255, 51, 51, 0.4);
+  animation: pulse-red 1.5s infinite alternate;
+}
+
+.card.danger-alert .card-value {
+  color: var(--alert-red);
+  text-shadow: 0 0 8px var(--alert-red);
+}
+
+.card.danger-alert .card-title {
+  color: var(--alert-red);
+}
+
+@keyframes pulse-red {
+  0% {
+    box-shadow: 0 0 15px rgba(255, 51, 51, 0.4);
+    border-color: var(--alert-red);
+  }
+
+  100% {
+    box-shadow: 0 0 25px rgba(255, 51, 51, 0.7);
+    border-color: #ff6666;
+  }
 }
 
 /* Decorative borders for cards */
@@ -464,9 +493,7 @@ input:checked+.slider:before {
 }
 
 /* Ensure map container has relative position for absolute children */
-.map-container .card {
-  /* This selector targets the card itself if needed, but the container logic is handled below */
-}
+
 
 .map-container {
   position: relative;
@@ -534,20 +561,144 @@ canvas {
   margin-top: 20px;
 }
 
-/* === RESPONSIVE === */
-@media (max-width: 1200px) {
+/* === RESPONSIVE DESIGN === */
+
+/* Tablet & Smaller Laptops (max-width: 1024px) */
+@media (max-width: 1024px) {
   .dashboard-grid {
     grid-template-columns: repeat(2, 1fr);
   }
+
+  .map-container {
+    grid-column: span 2;
+  }
 }
 
+/* Tablets (max-width: 768px) */
 @media (max-width: 768px) {
   .dashboard-grid {
     grid-template-columns: 1fr;
+    gap: 15px;
   }
 
   .map-container,
-  .chart-container {
+  .chart-container,
+  .alert-container {
     grid-column: span 1;
   }
+
+  /* Reorder for mobile: Map top, then Nav */
+  .map-container {
+    order: -2;
+  }
+
+  .nav-container {
+    order: -1;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+
+  .header-right {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  h1 {
+    font-size: 1.5rem;
+  }
+}
+
+/* Mobile Devices (max-width: 480px) */
+@media (max-width: 480px) {
+  .container {
+    padding: 10px;
+  }
+
+  h1 {
+    font-size: 1.2rem;
+    letter-spacing: 1px;
+  }
+
+  .header-icon {
+    font-size: 1.5rem;
+  }
+
+  .live-clock {
+    font-size: 1rem;
+  }
+
+  .card-value {
+    font-size: 2rem;
+  }
+
+  .map-container {
+    min-height: 300px;
+  }
+
+  .map-view {
+    min-height: 300px;
+  }
+
+  .chart-wrapper {
+    height: 200px;
+  }
+
+  .alert-box {
+    height: 200px;
+    font-size: 0.75rem;
+  }
+
+  /* Stack header elements nicely */
+  .header-title {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  /* Make buttons easier to tap */
+  .action-btn {
+    width: 100%;
+    padding: 10px;
+    font-size: 1rem;
+  }
+
+  .status-badge {
+    padding: 5px 10px;
+    font-size: 0.8rem;
+  }
+}
+
+/* === BUTTONS === */
+.action-btn {
+  background: transparent;
+  border: 1px solid var(--hud-green-bright);
+  color: var(--hud-green-bright);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.9rem;
+  padding: 5px 15px;
+  cursor: pointer;
+  letter-spacing: 1px;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  /* Glow Effect */
+  box-shadow: 0 0 5px rgba(0, 255, 51, 0.2);
+}
+
+.action-btn:hover {
+  background: var(--hud-green-bright);
+  color: var(--hud-black);
+  box-shadow: 0 0 15px var(--hud-green-bright);
+}
+
+.action-btn:active {
+  transform: scale(0.95);
+}
+
+.control-row {
+  margin-top: 10px;
+  display: flex;
+  justify-content: center;
 }
