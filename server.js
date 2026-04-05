@@ -4,11 +4,11 @@ const bodyParser = require('body-parser');
 const path = require('path');
 
 const app = express();
-const PORT = 3000;
 
 // Middleware
 app.use(cors());
-app.use(bodyParser.json());
+app.use(bodyParser.json({ limit: '10mb' }));
+app.use(bodyParser.urlencoded({ limit: '10mb', extended: true }));
 app.use(express.static('public'));
 
 // Store latest sensor data
@@ -55,30 +55,47 @@ function calculateStatus(data) {
 
 // Receive data from Arduino
 app.post('/api/data', (req, res) => {
-    const data = req.body;
+    try {
+        const data = req.body;
 
-    // Add timestamp
-    data.timestamp = new Date().toISOString();
+        // Validate data
+        if (!data || typeof data !== 'object') {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid data format'
+            });
+        }
 
-    // Calculate status
-    data.status = calculateStatus(data);
+        // Add timestamp
+        data.timestamp = new Date().toISOString();
 
-    // Update latest data
-    latestData = data;
+        // Calculate status
+        data.status = calculateStatus(data);
 
-    // Add to history
-    dataHistory.push(data);
-    if (dataHistory.length > MAX_HISTORY) {
-        dataHistory.shift(); // Remove oldest
+        // Update latest data
+        latestData = data;
+
+        // Add to history
+        dataHistory.push(data);
+        if (dataHistory.length > MAX_HISTORY) {
+            dataHistory.shift(); // Remove oldest
+        }
+
+        console.log('📥 Received data:', data);
+
+        res.json({
+            success: true,
+            message: 'Data received',
+            status: data.status
+        });
+    } catch (error) {
+        console.error('❌ Error processing data:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error processing data',
+            error: error.message
+        });
     }
-
-    console.log('📥 Received data:', data);
-
-    res.json({
-        success: true,
-        message: 'Data received',
-        status: data.status
-    });
 });
 
 // Get latest data
@@ -99,15 +116,19 @@ app.get('/api/status', (req, res) => {
     });
 });
 
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+    res.json({
+        status: 'OK',
+        message: 'Smart Soldier IoT Dashboard Server is running',
+        timestamp: new Date().toISOString()
+    });
+});
+
 // Serve the dashboard
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Start server
-app.listen(PORT, '0.0.0.0', () => {
-    console.log('🚀 Smart Soldier IoT Dashboard Server');
-    console.log(`📡 Server running on http://localhost:${PORT}`);
-    console.log(`🌐 Network access: http://172.16.247.241:${PORT}`);
-    console.log('⏳ Waiting for Arduino data...\n');
-});
+// Export for Vercel
+module.exports = app;
