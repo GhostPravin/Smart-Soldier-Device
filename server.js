@@ -130,5 +130,13 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Export for Vercel
+// Start server if run directly (e.g., Render, local)
+if (require.main === module) {
+    const PORT = process.env.PORT || 3000;
+    app.listen(PORT, () => {
+        console.log(`🚀 Server is running on port ${PORT}`);
+    });
+}
+
+// Export for serverless environments (like Vercel)
 module.exports = app;
